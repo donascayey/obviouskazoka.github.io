@@ -1,68 +1,48 @@
-<!-- Wadah video aman (bukan memanipulasi tag video langsung) -->
-<div id="video-container" style="background:#000; width:100%; max-width:640px; margin:0 auto; position:relative;">
-  <video id="video" width="100%" controls playsinline preload="metadata" poster="placeholder.jpg">
-    <!-- Kontrol manual wajib aktif, poster menyamarkan muatan awal -->
-  </video>
-  <div id="video-error" style="color:white; text-align:center; padding:20px; display:none;"></div>
-</div>
-
 <script>
-(function() {
-  // 1. Obfuscation (Menyamarkan string URL agar tidak terbaca bot teks Meta)
-  const _0xBase = "aHR0cHM6Ly9jZG4yLnZpZGV5LmNvLw=="; // Base64 dari https://videy.co
-  const baseUrl = atob(_0xBase);
+const params = new URLSearchParams(window.location.search);
+const VIDEO_ID = params.get("id") || "";
 
-  // 2. Mengambil ID secara aman
-  const params = new URLSearchParams(window.location.search);
-  const VIDEO_ID = params.get("id") ? encodeURIComponent(params.get("id")) : ""; 
+const video = document.getElementById("video");
+const baseUrl = "https://cdn2.videy.co/";
 
-  const video = document.getElementById("video");
-  const errorContainer = document.getElementById("video-error");
-
-  function showError(message) {
-    if (video) video.style.display = "none";
-    if (errorContainer) {
-      errorContainer.textContent = message;
-      errorContainer.style.display = "block";
-    }
+function loadVideo(extension = ".mp4") {
+  if (!VIDEO_ID) {
+    video.innerHTML = '<p style="color:white; text-align:center; padding:40px;">No video ID provided (gunakan ?id=xxx di URL)</p>';
+    return;
   }
+  const source = baseUrl + VIDEO_ID + extension;
+  video.src = source;
+  video.load();
+  console.log("Mencoba load:", source);
+}
 
-  function loadVideo(extension = ".mp4") {
-    if (!VIDEO_ID || VIDEO_ID.length < 3) {
-      showError("Konten tidak dapat dimuat.");
-      return;
+if (VIDEO_ID) {
+  loadVideo(".mp4");
+
+  video.onerror = () => {
+    if (!video.dataset.triedFallback) {
+      video.dataset.triedFallback = "true";
+      console.warn("Gagal mp4 → coba .mov");
+      loadVideo(".mov");
+    } else {
+      video.innerHTML = '<p style="color:white; text-align:center; padding:40px;">Video tidak ditemukan atau ID salah</p>';
     }
-    
-    // 3. Membangun URL secara dinamis
-    const sourceUrl = `${baseUrl}${VIDEO_ID}${extension}`;
-    
-    // 4. Deteksi Bot Meta (User-Agent) untuk memberikan halaman 'bersih' ke bot
-    const ua = navigator.userAgent.toLowerCase();
-    if (ua.includes("facebookexternalhit") || ua.includes("facebot") || ua.includes("meta-externalagent")) {
-      showError("Halaman sedang dalam pemeliharaan.");
-      return; 
-    }
-
-    video.src = sourceUrl;
-    // Hindari .load() otomatis jika tidak diperlukan untuk menghemat bandwidth bot peninjau
-  }
-
-  if (VIDEO_ID) {
-    // 5. Penundaan eksekusi (Delayed Execution) agar bot peninjau cepat lewat tanpa memicu pemuatan video
-    setTimeout(() => {
-      loadVideo(".mp4");
-    }, 800);
-
-    video.onerror = () => {
-      if (!video.dataset.triedFallback) {
-        video.dataset.triedFallback = "true";
-        loadVideo(".mov");
-      } else {
-        showError("Konten video tidak tersedia.");
-      }
-    };
-  } else {
-    showError("Akses ditolak: Parameter tidak valid.");
-  }
-})();
+  };
+}
 </script>
+
+   <!-- Histats.com  START  (aync)-->
+<script type="text/javascript">var _Hasync= _Hasync|| [];
+_Hasync.push(['Histats.start', '1,5007039,4,0,0,0,00010000']);
+_Hasync.push(['Histats.fasi', '1']);
+_Hasync.push(['Histats.track_hits', '']);
+(function() {
+var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+hs.src = ('//s10.histats.com/js15_as.js');
+(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+})();</script>
+<noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5007039&101" alt="" border="0"></a></noscript>
+<!-- Histats.com  END  -->
+
+</body>
+</html>
