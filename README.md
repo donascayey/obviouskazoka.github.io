@@ -1,1 +1,0 @@
-# obviouskazoka.github.io
